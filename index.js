@@ -17,18 +17,30 @@ const categories = []; //['development', 'sub-projects', 'social'];
 
 const alreadyVoted = [];
 
+let lastVote = Date.now();
+let voteDelay = 0;
+
 function vote(post) {
-  steem.broadcast.vote(process.env.POSTING_KEY, process.env.ACCOUNT, post.author, post.permlink, 100, (err, result) => {
-    if(err) {
-      console.log('ERROR!')
-      console.log(err);
-    } else {
-      console.log('Voted ' + post.permlink);
-      console.log(result);
-    }
-  });
   alreadyVoted.push(post.permlink);
-}
+  if(lastVote - Date.now() <= 3000) {
+    voteDelay += 3000;
+  } else {
+    voteDelay = 0;
+  }
+  console.log(voteDelay);
+  setTimeout(() => {
+    lastVote = Date.now();
+    steem.broadcast.vote(process.env.POSTING_KEY, process.env.ACCOUNT, post.author, post.permlink, 100, (err, result) => {
+      if(err) {
+        console.log('ERROR!')
+        console.log(err);
+      } else {
+        console.log('Voted ' + post.permlink);
+        console.log(result);
+      }
+    });
+  }, voteDelay);
+};
 
 async function run() {
   const posts = JSON.parse(
